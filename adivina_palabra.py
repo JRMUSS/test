@@ -15,6 +15,24 @@ def elegir_palabra_por_categoria(categorias):
                 return random.choice(categorias[categoria]).upper(), categoria
         print("Opción inválida. Intenta nuevamente.")
 
+def mostrar_estado(estado, vidas, letras_incorrectas):
+    print("\nPalabra:", ' '.join(estado))
+    print(f"Vidas restantes: {vidas}")
+    print(f"Letras incorrectas: {', '.join(letras_incorrectas)}")
+
+def validar_letra(letra, usadas):
+    letra = letra.upper()
+    if len(letra) != 1:
+        print("Por favor ingresa solo UNA letra.")
+        return None
+    if letra not in string.ascii_uppercase:
+        print("Eso no es una letra válida.")
+        return None
+    if letra in usadas:
+        print("Ya ingresaste esa letra. Intenta con otra.")
+        return None
+    return letra
+
 def jugar_una_partida(categorias):
     palabra, categoria = elegir_palabra_por_categoria(categorias)
     vidas = 6
@@ -25,17 +43,15 @@ def jugar_una_partida(categorias):
     print(f"\nCategoría elegida: {categoria}")
 
     while vidas > 0 and '_' in estado:
-        print("\nPalabra:", ' '.join(estado))
-        print("Vidas restantes:", vidas)
-        print("Letras incorrectas:", ', '.join(letras_incorrectas))
-        letra = input("Ingresa una letra: ").strip().upper()
+        mostrar_estado(estado, vidas, letras_incorrectas)
+        entrada = input("Ingresa una letra (o '!' para rendirte): ").strip()
 
-        if len(letra) != 1 or letra not in string.ascii_uppercase:
-            print("Por favor, ingresa solo una letra válida.")
-            continue
+        if entrada == '!':
+            print("Has decidido rendirte. ¡Partida terminada!")
+            return False  # para no seguir jugando si se rinde
 
-        if letra in letras_adivinadas or letra in letras_incorrectas:
-            print("Ya ingresaste esa letra.")
+        letra = validar_letra(entrada, letras_adivinadas.union(set(letras_incorrectas)))
+        if not letra:
             continue
 
         if letra in palabra:
@@ -45,20 +61,35 @@ def jugar_una_partida(categorias):
                 if l == letra:
                     estado[i] = letra
         else:
-            print(f"La letra '{letra}' no está en la palabra.")
+            print(f"La letra '{letra}' NO está en la palabra.")
             vidas -= 1
             letras_incorrectas.append(letra)
 
     if '_' not in estado:
-        print(f"\n¡Felicidades! Adivinaste la palabra: {palabra}")
+        print(f"\n¡Felicidades! ¡Adivinaste la palabra: {palabra}!")
     else:
-        print(f"\nPerdiste. La palabra era: {palabra}")
+        print(f"\nHas perdido. La palabra era: {palabra}.")
 
-if __name__ == "__main__":
+    return True  # para seguir jugando
+
+def main():
     categorias = {
         'Países': ['uruguay', 'argentina', 'brasil', 'canada', 'japon'],
         'Animales': ['elefante', 'jirafa', 'perro', 'gato', 'delfin'],
         'Colores': ['rojo', 'azul', 'verde', 'amarillo', 'violeta'],
         'Personajes históricos': ['napoleon', 'einstein', 'cleopatra', 'bolivar', 'mandela']
     }
-    jugar_una_partida(categorias)
+
+    print("=== ¡Bienvenido al juego 'Adivina la palabra' con categorías! ===")
+
+    while True:
+        seguir = jugar_una_partida(categorias)
+        if not seguir:
+            break
+        otra = input("\n¿Deseas jugar otra vez? (S/N): ").strip().upper()
+        if otra != 'S':
+            print("¡Gracias por jugar! Hasta la próxima.")
+            break
+
+if __name__ == '__main__':
+    main()
